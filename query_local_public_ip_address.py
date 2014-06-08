@@ -1,7 +1,10 @@
-import sys
-import ip_address_service_providers as service
-from multiprocessing import Process, Queue
+"""An application to find the public ip address of the local machine."""
 import collections
+from multiprocessing import Process, Queue
+import sys
+
+import ip_address_service_providers as service
+
 
 def queue_ip_address(queue, service):
   """Use a service to get the ip address and put it in the queue.
@@ -12,7 +15,17 @@ def queue_ip_address(queue, service):
   """
   queue.put((service.name, service.get_ip()))
 
+
 def get_reconcile_ip_address(ip_addresses, size):
+  """Get reconciled ip address.
+
+  Args:
+    ip_addresses: a multiprocessing.Queue for queried result(name, ip).
+    size: an int of maximum queue size.
+  Returned:
+    (str, list) a str of the ip address and a list of providers, or
+    (None, None) if there's no address agreed by at least 2 providers.
+  """
   # holder for the ip addresses we are going to reconcile.
   result = collections.defaultdict(list)
 
@@ -25,13 +38,14 @@ def get_reconcile_ip_address(ip_addresses, size):
     size -= 1
   return None, None
 
+
 def main():
   # Add the ip querying services we have here.
   providers = (
-    service.AmazonAWSService(),
-    service.DynDNSService(),
-    service.IfConfigService(),
-    service.CorzService())
+      service.AmazonAWSService(),
+      service.DynDNSService(),
+      service.IfConfigService(),
+      service.CorzService())
 
   # Queue for the queried ip addresses.
   ip_addresses = Queue()
@@ -49,13 +63,14 @@ def main():
       p.terminate()
 
   if ip:
-    print ('The local machine\'s public ip address is:\n'
-           '%s\nConfirmed by:\n%s\n%s' % (ip, services[0], services[1]))
+    print (
+        'The local machine\'s public ip address is:\n'
+        '%s\nConfirmed by:\n%s\n%s' % (ip, services[0], services[1]))
   else:
     # All the processes either failed or return different results.
     print 'No confirmed ip address'
 
-if __name__=='__main__':
+if __name__ == '__main__':
   if len(sys.argv) > 1:
     print 'Not accepting parameters for this application'
   else:

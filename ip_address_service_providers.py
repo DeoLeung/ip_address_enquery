@@ -1,4 +1,5 @@
-"""
+"""Derived ip address querying services.
+
 1. http://checkip.amazonaws.com/
 2. http://checkip.dyndns.org/
 3. http://ifconfig.me/ip
@@ -7,6 +8,7 @@
 from ip_address_service import IPAddressService as ip
 import re
 import urllib2
+
 
 class AmazonAWSService(ip):
 
@@ -25,7 +27,12 @@ class DynDNSService(ip):
     self.set_logger()
 
   def extract_ip(self, http_body):
-    """Current IP Address: 31.51.59.26"""
+    """Sample http reply(as one line):
+
+    <html><head><title>Current IP Check</title></head>
+    <body>Current IP Address: 31.51.59.26</body></html>
+    """
+    # TODO: ideally, parse it using xml module.
     groups = self.body_regex.search(http_body)
     if groups:
       ip_string = groups.group(1)
@@ -48,6 +55,7 @@ class CorzService(ip):
     self.name = 'Corz IP Address Service'
     self.host = urllib2.Request(
         url='http://corz.org/ip',
+        # Corz ip rejects non 'real' browsing query, act as Mozilla FireFox.
         headers={'User-Agent': 'Mozilla/5.0 (X11; U; Linux i686) '
                                'Gecko/20071127 Firefox/2.0.0.11'})
     self.set_logger()
